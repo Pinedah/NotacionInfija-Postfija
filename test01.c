@@ -15,27 +15,33 @@
 #define TAM_CADENA 100
 
 struct STACK{
-    char stack[TAM]; 
-    char *ptrSt;
+    char datos[TAM]; 
+    char *ptrDatos;
 };
 
 char *leerCadenaDesdeArchivo(char *nombreArchivo);
-void conversionInfijaPostfija(cadenaLeida);
+void conversionInfijaPostfija(char *cadenaLeida, struct STACK *ptrStack);
 void escribirEnArchivo(char caracter, char *nombreArchivo);
 int esOperador(char caracter);
 int gradoOperador(char caracter);
+int esParentesis(char caracter);
 
 int main(){
 
     char *cadenaLeida = leerCadenaDesdeArchivo("entrada.txt");
-    char cadenaNueva[TAM];
+    //char cadenaNueva[TAM];
+
+    struct STACK stack, *myPtrStack;
+    myPtrStack = &stack;
+    myPtrStack->ptrDatos = myPtrStack->datos;
 
     if (cadenaLeida != NULL) {
         printf("La cadena leída del archivo es: %s\n", cadenaLeida);
+        conversionInfijaPostfija(cadenaLeida, myPtrStack);
+        
+        
         free(cadenaLeida); // Liberar la memoria asignada para la cadena
     }
-
-    conversionInfijaPostfija(cadenaLeida);
 
     return 0;
 }
@@ -64,18 +70,50 @@ char *leerCadenaDesdeArchivo(char *nombreArchivo) {
 }
 
 // Función para administrar todo el procedimiento de conversión
-void conversionInfijaPostfija(cadenaLeida){
+void conversionInfijaPostfija(char *cadenaLeida, struct STACK *ptrStack){
 
     char *ptrCadena;
 
-    for(ptrCadena = cadenaLeida; *ptrCadena != '\0'; ptrCadena++){
-        if(isalpha(*ptrCadena))
-            escribirEnArchivo(*ptrCadena, "expresionPostfija.txt");
-        else if(esOperador(*ptrCadena)){
-            int grado = gradoOperador(*ptrCadena);
-        }
+    *ptrStack->ptrDatos = '(';
+    ptrStack->ptrDatos++;
 
+    for(ptrCadena = cadenaLeida; *ptrCadena != '\0'; ptrCadena++, ptrStack->ptrDatos++){
+        
+        /* printf("%c \n", *ptrCadena);     // TEST DE ESCRITURA EN EL ARCHIVO XD
+        escribirEnArchivo(*ptrCadena, "expresionPostfija.txt"); */
+        
+        if(esParentesis(*ptrCadena)){
+            switch (*ptrCadena){
+            case '(':
+                push(ptrStack, *ptrCadena);
+                //*ptrStack->ptrDatos = *ptrCadena;
+                /* code */
+                break;
+            case ')':
+                while(*ptrStack->ptrDatos =! '(')
+                    pop(ptrStack);
+
+                break;
+            }
+
+        }else if(esOperador(*ptrCadena)){
+
+            if(gradoOperador(*ptrStack->ptrDatos) > gradoOperador(*ptrCadena)){
+                escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+            }
+            /*
+            int grado = gradoOperador(*ptrCadena);
+            switch (grado){
+            case 3: // Operador ^
+
+                break;
             
+            default:
+                break;
+            }*/
+
+        }
+        
     }
 
 }
@@ -112,4 +150,17 @@ int gradoOperador(char caracter) {
         default:
             return 0; 
     }
+}
+int esParentesis(char caracter){
+    return (caracter == '(') || caracter == ')' ? 1 : 0;
+}
+
+void push(struct STACK *ptrStack, char caracter){
+    *ptrStack->ptrDatos = caracter;
+    ptrStack->ptrDatos++; 
+}
+
+void pop(struct STACK *ptrStack){
+    escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+    ptrStack->ptrDatos--;
 }
