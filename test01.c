@@ -25,6 +25,8 @@ void escribirEnArchivo(char caracter, char *nombreArchivo);
 int esOperador(char caracter);
 int gradoOperador(char caracter);
 int esParentesis(char caracter);
+void pushStack(struct STACK *ptrStack, char caracter);
+void popStack(struct STACK *ptrStack);
 
 int main(){
 
@@ -42,6 +44,7 @@ int main(){
         
         free(cadenaLeida); // Liberar la memoria asignada para la cadena
     }
+    printf("\nPILA: %s", myPtrStack->datos);
 
     return 0;
 }
@@ -77,44 +80,104 @@ void conversionInfijaPostfija(char *cadenaLeida, struct STACK *ptrStack){
     *ptrStack->ptrDatos = '(';
     ptrStack->ptrDatos++;
 
-    for(ptrCadena = cadenaLeida; *ptrCadena != '\0'; ptrCadena++, ptrStack->ptrDatos++){
+    for(ptrCadena = cadenaLeida; *ptrCadena != '\0'; ptrCadena++){
         
         /* printf("%c \n", *ptrCadena);     // TEST DE ESCRITURA EN EL ARCHIVO XD
         escribirEnArchivo(*ptrCadena, "expresionPostfija.txt"); */
         
         if(esParentesis(*ptrCadena)){
+          //  printf("es parentesis\n");
             switch (*ptrCadena){
             case '(':
-                push(ptrStack, *ptrCadena);
-                //*ptrStack->ptrDatos = *ptrCadena;
-                /* code */
+          //      printf("es (\n");
+                pushStack(ptrStack, *ptrCadena);
                 break;
             case ')':
-                while(*ptrStack->ptrDatos =! '(')
-                    pop(ptrStack);
+                printf("caracter: %c ------\n", *ptrStack->ptrDatos);
+                ptrStack->ptrDatos--;
+                while(*ptrStack->ptrDatos != '('){
+                    printf("caracter: %c ------\n", *ptrStack->ptrDatos);
+                    popStack(ptrStack);
+                }
 
                 break;
             }
 
         }else if(esOperador(*ptrCadena)){
 
-            if(gradoOperador(*ptrStack->ptrDatos) > gradoOperador(*ptrCadena)){
-                escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+            if(gradoOperador(*(ptrStack->ptrDatos-1)) == 0){
+
+                pushStack(ptrStack, *ptrCadena);
+
+
+            }else{
+                if(gradoOperador(*(ptrStack->ptrDatos-1)) < gradoOperador(*ptrCadena)){
+                    //escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+                    
+                    pushStack(ptrStack, *ptrCadena);
+
+                }else if(gradoOperador(*(ptrStack->ptrDatos-1)) > gradoOperador(*ptrCadena)){
+                    
+                    printf("caracter +: %c ------\n", *(ptrStack->ptrDatos-1));
+
+                    while (*(ptrStack->ptrDatos-1) != '('){
+
+                        printf("grado mayor en pila: %c ------\n", *ptrStack->ptrDatos);
+                        ptrStack->ptrDatos--;
+                        popStack(ptrStack);
+                        ptrStack->ptrDatos++;
+                    }
+                    pushStack(ptrStack, *ptrCadena);
+
+                    
+                }else{ //|| gradoOperador(*(ptrStack->ptrDatos-1)) == gradoOperador(*ptrCadena)
+                    //printf("caracter +: %c ------\n", *(ptrStack->ptrDatos-1));
+
+                    //while (*(ptrStack->ptrDatos-1) != '('){
+
+                        printf("grado igual: %c ------\n", *ptrStack->ptrDatos);
+                        ptrStack->ptrDatos--;
+                        popStack(ptrStack);
+                        //pushStack(ptrStack, *ptrCadena);
+                        ptrStack->ptrDatos = ptrStack->ptrDatos+1;
+                        pushStack(ptrStack, *ptrCadena);
+                        //ptrStack->ptrDatos++;
+                    //}
+                }
+
             }
-            /*
-            int grado = gradoOperador(*ptrCadena);
-            switch (grado){
-            case 3: // Operador ^
 
-                break;
-            
-            default:
-                break;
-            }*/
 
+        }else{
+            escribirEnArchivo(*ptrCadena, "expresionPostfija.txt");
+            printf("\t\t\t\ttxt: %c \n", *ptrCadena);
         }
+        printf("pila: %s\n", ptrStack->datos);
+        printf("*ptrStack->ptrDatos : %c\n", *ptrStack->ptrDatos);
+    }
+
+    printf("el puntero de la fokin pila se queda en: %c \n", *ptrStack->ptrDatos);
+
+    ptrStack->ptrDatos--;
+    while(*ptrStack->ptrDatos != '('){
+        escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+        ptrStack->ptrDatos--;
         
     }
+
+/*
+    int i = 0;
+    while(*ptrStack->ptrDatos != '('){
+        //escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+        ptrStack->ptrDatos--;
+        i++;
+    }
+    ptrStack->ptrDatos++;
+    for(int j = 0; j < i; j++){
+        escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+        ptrStack->ptrDatos++;
+    }
+*/
 
 }
 
@@ -155,12 +218,13 @@ int esParentesis(char caracter){
     return (caracter == '(') || caracter == ')' ? 1 : 0;
 }
 
-void push(struct STACK *ptrStack, char caracter){
+void pushStack(struct STACK *ptrStack, char caracter){
     *ptrStack->ptrDatos = caracter;
     ptrStack->ptrDatos++; 
 }
 
-void pop(struct STACK *ptrStack){
+void popStack(struct STACK *ptrStack){
     escribirEnArchivo(*ptrStack->ptrDatos, "expresionPostfija.txt");
+    printf("\t\t\t\ttxt: %c \n", *ptrStack->ptrDatos);
     ptrStack->ptrDatos--;
 }
